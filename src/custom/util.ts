@@ -43,7 +43,6 @@ export const getAwsRegion = async () => {
 
 		return identityResponse.data.region;
 	} catch (e) {
-		console.error("Failed to retrieve AWS region");
 		throw e;
 	}
 };
