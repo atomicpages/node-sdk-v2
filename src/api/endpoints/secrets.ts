@@ -25,37 +25,37 @@ export class SecretsApi {
     const { secretName, ...queryParams } = params;
     return this.apiClient.get<GetSecretResponse>(
       `/api/v3/secrets/raw/${encodeURIComponent(secretName)}`,
-      { params }
+      { params },
     );
   }
 
   async createSecret(
     secretName: string,
-    data: CreateSecretRequest
+    data: CreateSecretRequest,
   ): Promise<CreateSecretResponse> {
     return this.apiClient.post<CreateSecretResponse>(
       `/api/v3/secrets/raw/${encodeURIComponent(secretName)}`,
-      data
+      data,
     );
   }
 
   async updateSecret(
     secretName: string,
-    data: UpdateSecretRequest
+    data: UpdateSecretRequest,
   ): Promise<UpdateSecretResponse> {
     return this.apiClient.patch<UpdateSecretResponse>(
       `/api/v3/secrets/raw/${encodeURIComponent(secretName)}`,
-      data
+      data,
     );
   }
 
   async deleteSecret(
     secretName: string,
-    data: DeleteSecretRequest
+    data: DeleteSecretRequest,
   ): Promise<DeleteSecretResponse> {
     return this.apiClient.delete<DeleteSecretResponse>(
       `/api/v3/secrets/raw/${encodeURIComponent(secretName)}`,
-      { data }
+      { data },
     );
   }
 }

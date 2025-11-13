@@ -42,7 +42,7 @@ export default class DynamicSecretsClient {
 
     delete: async (
       leaseId: string,
-      options: DeleteDynamicSecretLeaseOptions
+      options: DeleteDynamicSecretLeaseOptions,
     ) => {
       try {
         const res = await this.apiClient.leases.delete(leaseId, options);
