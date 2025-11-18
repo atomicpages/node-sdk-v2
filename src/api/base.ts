@@ -39,7 +39,7 @@ export class ApiClient {
     data?: TData,
     config?: Options,
   ): Promise<T> {
-    return await this.client.post(url, { json: data, ...config }).json<T>();
+    return await this.client.post(url, { ...config, json: data }).json<T>();
   }
 
   public async patch<T, TData = unknown>(
