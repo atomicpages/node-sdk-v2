@@ -19,7 +19,7 @@ export class DynamicSecretsApi {
     data: CreateDynamicSecretRequest,
   ): Promise<CreateDynamicSecretResponse> {
     return this.apiClient.post<CreateDynamicSecretResponse>(
-      "/api/v1/dynamic-secrets",
+      "api/v1/dynamic-secrets",
       data,
     );
   }
@@ -29,7 +29,7 @@ export class DynamicSecretsApi {
     data: DeleteDynamicSecretRequest,
   ): Promise<DeleteDynamicSecretResponse> {
     return this.apiClient.delete<DeleteDynamicSecretResponse>(
-      `/api/v1/dynamic-secrets/${encodeURIComponent(secretName)}`,
+      `api/v1/dynamic-secrets/${encodeURIComponent(secretName)}`,
       { data },
     );
   }
@@ -37,7 +37,7 @@ export class DynamicSecretsApi {
   leases = {
     create: async (data: CreateLeaseRequest): Promise<CreateLeaseResponse> => {
       return this.apiClient.post<CreateLeaseResponse>(
-        "/api/v1/dynamic-secrets/leases",
+        "api/v1/dynamic-secrets/leases",
         data,
       );
     },
@@ -47,7 +47,7 @@ export class DynamicSecretsApi {
       data: DeleteLeaseRequest,
     ): Promise<DeleteLeaseResponse> => {
       return this.apiClient.delete<DeleteLeaseResponse>(
-        `/api/v1/dynamic-secrets/leases/${leaseId}`,
+        `api/v1/dynamic-secrets/leases/${leaseId}`,
         { data },
       );
     },
@@ -57,7 +57,7 @@ export class DynamicSecretsApi {
       data: RenewLeaseRequest,
     ): Promise<RenewLeaseResponse> => {
       return this.apiClient.post<RenewLeaseResponse>(
-        `/api/v1/dynamic-secrets/leases/${leaseId}/renew`,
+        `api/v1/dynamic-secrets/leases/${leaseId}/renew`,
         data,
       );
     },

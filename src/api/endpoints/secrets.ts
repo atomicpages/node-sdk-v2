@@ -16,16 +16,18 @@ export class SecretsApi {
   constructor(private apiClient: ApiClient) {}
 
   async listSecrets(params: ListSecretsRequest): Promise<ListSecretsResponse> {
-    return this.apiClient.get<ListSecretsResponse>("/api/v3/secrets/raw", {
-      params,
+    return this.apiClient.get<ListSecretsResponse>("api/v3/secrets/raw", {
+      searchParams: {
+        ...params,
+      },
     });
   }
 
   async getSecret(params: GetSecretRequest): Promise<GetSecretResponse> {
     const { secretName, ...queryParams } = params;
     return this.apiClient.get<GetSecretResponse>(
-      `/api/v3/secrets/raw/${encodeURIComponent(secretName)}`,
-      { params },
+      `api/v3/secrets/raw/${encodeURIComponent(secretName)}`,
+      { searchParams: queryParams },
     );
   }
 
@@ -34,7 +36,7 @@ export class SecretsApi {
     data: CreateSecretRequest,
   ): Promise<CreateSecretResponse> {
     return this.apiClient.post<CreateSecretResponse>(
-      `/api/v3/secrets/raw/${encodeURIComponent(secretName)}`,
+      `api/v3/secrets/raw/${encodeURIComponent(secretName)}`,
       data,
     );
   }
@@ -44,7 +46,7 @@ export class SecretsApi {
     data: UpdateSecretRequest,
   ): Promise<UpdateSecretResponse> {
     return this.apiClient.patch<UpdateSecretResponse>(
-      `/api/v3/secrets/raw/${encodeURIComponent(secretName)}`,
+      `api/v3/secrets/raw/${encodeURIComponent(secretName)}`,
       data,
     );
   }
@@ -54,7 +56,7 @@ export class SecretsApi {
     data: DeleteSecretRequest,
   ): Promise<DeleteSecretResponse> {
     return this.apiClient.delete<DeleteSecretResponse>(
-      `/api/v3/secrets/raw/${encodeURIComponent(secretName)}`,
+      `api/v3/secrets/raw/${encodeURIComponent(secretName)}`,
       { data },
     );
   }

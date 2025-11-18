@@ -59,7 +59,7 @@ export default class SecretsClient {
 
       return res;
     } catch (err) {
-      throw newInfisicalError(err);
+      throw await newInfisicalError(err);
     }
   };
 

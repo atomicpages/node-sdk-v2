@@ -8,7 +8,7 @@ export class EnvironmentsApi {
     data: CreateEnvironmentRequest,
   ): Promise<CreateEnvironmentResponse> {
     return this.apiClient.post<CreateEnvironmentResponse>(
-      `/api/v1/workspace/${data.projectId}/environments`,
+      `api/v1/workspace/${data.projectId}/environments`,
       data,
     );
   }

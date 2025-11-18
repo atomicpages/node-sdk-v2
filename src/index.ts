@@ -41,7 +41,7 @@ class InfisicalSDK {
   private kmsClient: KmsClient;
 
   constructor(options?: InfisicalSDKOptions) {
-    const baseURL = options?.siteUrl || "https://app.infisical.com";
+    const baseURL = options?.siteUrl || "https://app.infisical.com/";
 
     // Initialize the base API client
     this.apiClient = new ApiClient({ baseURL });
@@ -101,7 +101,7 @@ export * from "./api/types";
 
 // Export types and enums from schemas
 export {
-  TDynamicSecretProvider,
+  type TDynamicSecretProvider,
   DynamicSecretProviders,
   SqlProviders,
 } from "./custom/schemas";
