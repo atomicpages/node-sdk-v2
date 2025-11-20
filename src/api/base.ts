@@ -16,8 +16,14 @@ export class ApiClient {
       timeout: config.timeout || 10000,
       retry: {
         limit: 4,
-        backoffLimit: 2,
-        jitter: true,
+        methods: ['get', 'post', 'put', 'delete', 'patch'],
+        statusCodes: [429],
+        delay: attemptCount => 1000 * Math.pow(2, attemptCount - 1),
+        jitter: (delay) => {
+          const jitterAmount = delay * 0.2;
+          return delay + (Math.random() * 2 - 1) * jitterAmount;
+        },
+        retryOnTimeout: true, // to match network error behavior
       },
     });
   }
