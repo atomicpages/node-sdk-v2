@@ -57,7 +57,7 @@ export class SecretsApi {
   ): Promise<DeleteSecretResponse> {
     return this.apiClient.delete<DeleteSecretResponse>(
       `api/v3/secrets/raw/${encodeURIComponent(secretName)}`,
-      { data },
+      data,
     );
   }
 }
