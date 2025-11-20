@@ -113,7 +113,7 @@ export default class SecretsClient {
       });
       return res.secret;
     } catch (err) {
-      throw newInfisicalError(err);
+      throw await newInfisicalError(err);
     }
   };
 
@@ -134,7 +134,7 @@ export default class SecretsClient {
         metadata: options.metadata,
       });
     } catch (err) {
-      throw newInfisicalError(err);
+      throw await newInfisicalError(err);
     }
   };
 
@@ -153,7 +153,7 @@ export default class SecretsClient {
         type: options.type,
       });
     } catch (err) {
-      throw newInfisicalError(err);
+      throw await newInfisicalError(err);
     }
   };
 
@@ -166,7 +166,7 @@ export default class SecretsClient {
         type: options.type,
       });
     } catch (err) {
-      throw newInfisicalError(err);
+      throw await newInfisicalError(err);
     }
   };
 }

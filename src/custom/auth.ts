@@ -22,7 +22,7 @@ export const renewToken = async (apiClient: AuthApi, token?: string) => {
     const res = await apiClient.renewToken({ accessToken: token });
     return res;
   } catch (err) {
-    throw newInfisicalError(err);
+    throw await newInfisicalError(err);
   }
 };
 
@@ -58,7 +58,7 @@ export default class AuthClient {
 
         return this.sdkAuthenticator(res.accessToken);
       } catch (err) {
-        throw newInfisicalError(err);
+        throw await newInfisicalError(err);
       }
     },
     renew: async () => {
@@ -69,7 +69,7 @@ export default class AuthClient {
         );
         return this.sdkAuthenticator(refreshedToken.accessToken);
       } catch (err) {
-        throw newInfisicalError(err);
+        throw await newInfisicalError(err);
       }
     },
   };
@@ -80,7 +80,7 @@ export default class AuthClient {
         const res = await this.apiClient.universalAuthLogin(options);
         return this.sdkAuthenticator(res.accessToken);
       } catch (err) {
-        throw newInfisicalError(err);
+        throw await newInfisicalError(err);
       }
     },
     renew: async () => {
@@ -91,7 +91,7 @@ export default class AuthClient {
         );
         return this.sdkAuthenticator(refreshedToken.accessToken);
       } catch (err) {
-        throw newInfisicalError(err);
+        throw await newInfisicalError(err);
       }
     },
   };

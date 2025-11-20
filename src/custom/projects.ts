@@ -13,7 +13,7 @@ export default class ProjectsClient {
       const res = await this.apiClient.create(options);
       return res.project;
     } catch (err) {
-      throw newInfisicalError(err);
+      throw await newInfisicalError(err);
     }
   };
 
@@ -26,7 +26,7 @@ export default class ProjectsClient {
       const res = await this.apiClient.inviteMembers(options);
       return res.memberships;
     } catch (err) {
-      throw newInfisicalError(err);
+      throw await newInfisicalError(err);
     }
   };
 }

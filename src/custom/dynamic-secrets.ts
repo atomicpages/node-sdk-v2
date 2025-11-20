@@ -16,7 +16,7 @@ export default class DynamicSecretsClient {
       const res = await this.apiClient.create(options);
       return res.dynamicSecret;
     } catch (err) {
-      throw newInfisicalError(err);
+      throw await newInfisicalError(err);
     }
   }
 
@@ -25,7 +25,7 @@ export default class DynamicSecretsClient {
       const res = await this.apiClient.delete(dynamicSecretName, options);
       return res.dynamicSecret;
     } catch (err) {
-      throw newInfisicalError(err);
+      throw await newInfisicalError(err);
     }
   }
 
@@ -35,7 +35,7 @@ export default class DynamicSecretsClient {
         const res = await this.apiClient.leases.create(options);
         return res;
       } catch (err) {
-        throw newInfisicalError(err);
+        throw await newInfisicalError(err);
       }
     },
 
@@ -47,7 +47,7 @@ export default class DynamicSecretsClient {
         const res = await this.apiClient.leases.delete(leaseId, options);
         return res;
       } catch (err) {
-        throw newInfisicalError(err);
+        throw await newInfisicalError(err);
       }
     },
 
@@ -56,7 +56,7 @@ export default class DynamicSecretsClient {
         const res = await this.apiClient.leases.renew(leaseId, options);
         return res;
       } catch (err) {
-        throw newInfisicalError(err);
+        throw await newInfisicalError(err);
       }
     },
   };
