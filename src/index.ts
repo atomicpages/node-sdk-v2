@@ -1,3 +1,23 @@
+import fetch, { Headers, Request, Response } from "node-fetch";
+
+if (!globalThis.fetch) {
+  // @ts-ignore
+  globalThis.fetch = fetch;
+  // @ts-ignore
+  globalThis.Headers = Headers;
+  // @ts-ignore
+  globalThis.Request = Request;
+  // @ts-ignore
+  globalThis.Response = Response;
+}
+
+// Polyfill Object.hasOwn for Node < 16.9.0
+// @ts-ignore
+if (!Object.hasOwn) {
+  // @ts-ignore
+  Object.hasOwn = (obj, prop) => Object.prototype.hasOwnProperty.call(obj, prop);
+}
+
 import { ApiClient } from "./api/base";
 import { AuthApi } from "./api/endpoints/auth";
 import { SecretsApi } from "./api/endpoints/secrets";
