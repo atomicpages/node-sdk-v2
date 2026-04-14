@@ -40,9 +40,7 @@ export const newInfisicalError = (error: any) => {
       });
     } else if (error.message) {
       return new InfisicalSDKError(error.message);
-    } else if (error.code) {
-      return new InfisicalSDKError(error.code);
-    } else {
+    }  else {
       return new InfisicalSDKError("Request failed with unknown error");
     }
   }
