@@ -39,20 +39,6 @@ export const buildUrl = (
 	return url.toString();
 };
 
-/** @internal – fetch with an AbortController-based timeout. */
-export const fetchWithTimeout = async (
-	url: string,
-	init: RequestInit,
-	timeoutMs: number
-): Promise<Response> => {
-	const controller = new AbortController();
-	const timer = setTimeout(() => controller.abort(), timeoutMs);
-	try {
-		return await fetch(url, { ...init, signal: controller.signal });
-	} finally {
-		clearTimeout(timer);
-	}
-};
 
 /** @internal */
 export const parseBody = async (response: Response): Promise<unknown> => {
@@ -77,7 +63,6 @@ export class ApiClient {
 			: `${config.baseURL}/`;
 		this.defaultHeaders = { ...(config.headers ?? {}) };
 		this.timeout = config.timeout ?? DEFAULT_TIMEOUT_MS;
-		console.log("[FetchApiClient] initialized", { baseURL: this.baseURL });
 	}
 
 	public setAccessToken(token: string) {
@@ -95,6 +80,18 @@ export class ApiClient {
 	): Promise<T> {
 		const { body, headers } = this.serializeBody(data, config);
 		return this.request<T>("POST", url, body, {
+			...config,
+			headers,
+		});
+	}
+
+	public put<T>(
+		url: string,
+		data?: unknown,
+		config?: RequestConfig
+	): Promise<T> {
+		const { body, headers } = this.serializeBody(data, config);
+		return this.request<T>("PUT", url, body, {
 			...config,
 			headers,
 		});
@@ -152,7 +149,6 @@ export class ApiClient {
 		config?: RequestConfig
 	): Promise<T> {
 		const fullUrl = buildUrl(this.baseURL, url, config?.params);
-		console.log(`[FetchApiClient] ${method} ${fullUrl}`);
 
 		const headers: Record<string, string> = { ...this.defaultHeaders };
 		if (config?.headers) {
@@ -161,9 +157,22 @@ export class ApiClient {
 
 		const timeoutMs = config?.timeout ?? this.timeout;
 
-		const response = await fetchWithRetry(() =>
-			fetchWithTimeout(fullUrl, { method, headers, body }, timeoutMs)
-		);
+		const doFetch = async (): Promise<Response> => {
+			const controller = new AbortController();
+			const timer = setTimeout(() => controller.abort(), timeoutMs);
+			try {
+				return await fetch(fullUrl, {
+					method,
+					headers,
+					body,
+					signal: controller.signal,
+				});
+			} finally {
+				clearTimeout(timer);
+			}
+		};
+
+		const response = await fetchWithRetry(doFetch);
 
 		if (!response.ok) {
 			throw new FetchHttpError(

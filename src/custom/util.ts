@@ -1,5 +1,5 @@
-import { fetchWithTimeout } from "../api/base";
-import { AWS_IDENTITY_DOCUMENT_URI, AWS_TOKEN_METADATA_URI } from "./constants";
+import { ApiClient } from "../api/base";
+import { FetchHttpError } from "../api/fetch-errors";
 
 import { Sha256 } from "@aws-crypto/sha256-js";
 import { fromNodeProviderChain } from "@aws-sdk/credential-providers";
@@ -25,26 +25,27 @@ export const getAwsRegion = async () => {
 		return region;
 	}
 
-	const tokenRes = await fetchWithTimeout(
-		AWS_TOKEN_METADATA_URI,
-		{ method: "PUT", headers: { "X-aws-ec2-metadata-token-ttl-seconds": "21600" } },
-		5_000
-	);
-	if (!tokenRes.ok) {
-		throw new Error(`Failed to retrieve AWS metadata token: ${tokenRes.status}`);
-	}
-	const token = await tokenRes.text();
+	const client = new ApiClient({ baseURL: "http://169.254.169.254/latest/", timeout: 5_000 });
 
-	const identityRes = await fetchWithTimeout(
-		AWS_IDENTITY_DOCUMENT_URI,
-		{ method: "GET", headers: { "X-aws-ec2-metadata-token": token, Accept: "application/json" } },
-		5_000
-	);
-	if (!identityRes.ok) {
-		throw new Error(`Failed to retrieve AWS identity document: ${identityRes.status}`);
+	let token: string;
+	try {
+		token = await client.put<string>("api/token", undefined, {
+			headers: { "X-aws-ec2-metadata-token-ttl-seconds": "21600" },
+		});
+	} catch (e) {
+		const status = e instanceof FetchHttpError ? e.response.status : "unknown";
+		throw new Error(`Failed to retrieve AWS metadata token: ${status}`);
 	}
-	const identityData = (await identityRes.json()) as { region: string };
-	return identityData.region;
+
+	try {
+		const identityData = await client.get<{ region: string }>("dynamic/instance-identity/document", {
+			headers: { "X-aws-ec2-metadata-token": token, Accept: "application/json" },
+		});
+		return identityData.region;
+	} catch (e) {
+		const status = e instanceof FetchHttpError ? e.response.status : "unknown";
+		throw new Error(`Failed to retrieve AWS identity document: ${status}`);
+	}
 };
 
 export const performAwsIamLogin = async (region: string) => {
