@@ -1,4 +1,3 @@
-import { FetchHttpError } from "./fetch-errors";
 export interface FetchRetryOptions {
 	maxRetries?: number;
 	initialDelayMs?: number;
@@ -40,8 +39,8 @@ export const fetchWithRetry = async (
 			if (response.status === 429 ) {
 				attempt++;
 				if (attempt > maxRetries) return response;
-				await sleep(delayFor(attempt));
 				await response.body?.cancel(); // cancel the request body to free up resources
+				await sleep(delayFor(attempt));
 				continue;
 			}
 
