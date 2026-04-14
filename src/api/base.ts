@@ -14,10 +14,7 @@ export interface RequestConfig {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	params?: Record<string, any>;
 	timeout?: number;
-	/**
-	 *  data is used as the JSON body for DELETE request.
-	 * Defined like this to follow the same data structure as axios
-	*/
+	/** data is used as the JSON body for DELETE requests. */
 	data?: unknown;
 }
 
@@ -40,6 +37,21 @@ export const buildUrl = (
 		url.searchParams.append(key, String(value));
 	}
 	return url.toString();
+};
+
+/** @internal – fetch with an AbortController-based timeout. */
+export const fetchWithTimeout = async (
+	url: string,
+	init: RequestInit,
+	timeoutMs: number
+): Promise<Response> => {
+	const controller = new AbortController();
+	const timer = setTimeout(() => controller.abort(), timeoutMs);
+	try {
+		return await fetch(url, { ...init, signal: controller.signal });
+	} finally {
+		clearTimeout(timer);
+	}
 };
 
 /** @internal */
@@ -149,22 +161,9 @@ export class ApiClient {
 
 		const timeoutMs = config?.timeout ?? this.timeout;
 
-		const doFetch = async (): Promise<Response> => {
-			const controller = new AbortController();
-			const timer = setTimeout(() => controller.abort(), timeoutMs);
-			try {
-				return await fetch(fullUrl, {
-					method,
-					headers,
-					body,
-					signal: controller.signal,
-				});
-			} finally {
-				clearTimeout(timer);
-			}
-		};
-
-		const response = await fetchWithRetry(doFetch);
+		const response = await fetchWithRetry(() =>
+			fetchWithTimeout(fullUrl, { method, headers, body }, timeoutMs)
+		);
 
 		if (!response.ok) {
 			throw new FetchHttpError(

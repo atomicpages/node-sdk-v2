@@ -1,4 +1,4 @@
-import axios from "axios";
+import { fetchWithTimeout } from "../api/base";
 import { AWS_IDENTITY_DOCUMENT_URI, AWS_TOKEN_METADATA_URI } from "./constants";
 
 import { Sha256 } from "@aws-crypto/sha256-js";
@@ -25,26 +25,26 @@ export const getAwsRegion = async () => {
 		return region;
 	}
 
-	try {
-		const tokenRes = await axios.put(AWS_TOKEN_METADATA_URI, undefined, {
-			headers: {
-				"X-aws-ec2-metadata-token-ttl-seconds": "21600"
-			},
-			timeout: 5_000 // 5 seconds
-		});
-
-		const identityResponse = await axios.get<{ region: string }>(AWS_IDENTITY_DOCUMENT_URI, {
-			headers: {
-				"X-aws-ec2-metadata-token": tokenRes.data,
-				Accept: "application/json"
-			},
-			timeout: 5_000
-		});
-
-		return identityResponse.data.region;
-	} catch (e) {
-		throw e;
+	const tokenRes = await fetchWithTimeout(
+		AWS_TOKEN_METADATA_URI,
+		{ method: "PUT", headers: { "X-aws-ec2-metadata-token-ttl-seconds": "21600" } },
+		5_000
+	);
+	if (!tokenRes.ok) {
+		throw new Error(`Failed to retrieve AWS metadata token: ${tokenRes.status}`);
 	}
+	const token = await tokenRes.text();
+
+	const identityRes = await fetchWithTimeout(
+		AWS_IDENTITY_DOCUMENT_URI,
+		{ method: "GET", headers: { "X-aws-ec2-metadata-token": token, Accept: "application/json" } },
+		5_000
+	);
+	if (!identityRes.ok) {
+		throw new Error(`Failed to retrieve AWS identity document: ${identityRes.status}`);
+	}
+	const identityData = (await identityRes.json()) as { region: string };
+	return identityData.region;
 };
 
 export const performAwsIamLogin = async (region: string) => {
