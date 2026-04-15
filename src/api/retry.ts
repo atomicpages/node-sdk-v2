@@ -39,7 +39,7 @@ export const fetchWithRetry = async (
 			if (response.status === 429 ) {
 				attempt++;
 				if (attempt > maxRetries) return response;
-				await response.body?.cancel(); // cancel the request body to free up resources
+				await response.body?.cancel(); // cancel the body to release the socket back to pool
 				await sleep(delayFor(attempt));
 				continue;
 			}
