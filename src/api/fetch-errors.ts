@@ -11,13 +11,11 @@ export interface FetchHttpErrorResponse {
 export class FetchHttpError extends Error {
 	public readonly name = "FetchHttpError";
 	public readonly response: FetchHttpErrorResponse;
-	/** Present for network-layer failures (e.g. "ETIMEDOUT"). */
-	public readonly code?: string;
 
-	constructor(message: string, response: FetchHttpErrorResponse, code?: string) {
+
+	constructor(message: string, response: FetchHttpErrorResponse) {
 		super(message);
 		this.response = response;
-		this.code = code;
 	}
 }
 

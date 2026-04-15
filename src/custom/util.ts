@@ -6,6 +6,8 @@ import { fromNodeProviderChain } from "@aws-sdk/credential-providers";
 import { HttpRequest } from "@smithy/protocol-http";
 import { SignatureV4 } from "@smithy/signature-v4";
 
+import { AWS_BASE_URI,  AWS_IDENTITY_DOCUMENT_PATH,  AWS_TOKEN_METADATA_PATH  } from "./constants";
+
 import { InfisicalSDKError } from "./errors";
 import { Secret } from "../api/types";
 
@@ -25,26 +27,20 @@ export const getAwsRegion = async () => {
 		return region;
 	}
 
-	const client = new ApiClient({ baseURL: "http://169.254.169.254/latest/", timeout: 5_000 });
+	const client = new ApiClient({ baseURL: AWS_BASE_URI, timeout: 5_000 });
 
 	let token: string;
 	try {
-		token = await client.put<string>("api/token", undefined, {
+		token = await client.put<string>(AWS_TOKEN_METADATA_PATH, undefined, {
 			headers: { "X-aws-ec2-metadata-token-ttl-seconds": "21600" },
 		});
-	} catch (e) {
-		const status = e instanceof FetchHttpError ? e.response.status : "unknown";
-		throw new Error(`Failed to retrieve AWS metadata token: ${status}`);
-	}
 
-	try {
-		const identityData = await client.get<{ region: string }>("dynamic/instance-identity/document", {
+		const identityData = await client.get<{ region: string }>(AWS_IDENTITY_DOCUMENT_PATH, {
 			headers: { "X-aws-ec2-metadata-token": token, Accept: "application/json" },
 		});
 		return identityData.region;
 	} catch (e) {
-		const status = e instanceof FetchHttpError ? e.response.status : "unknown";
-		throw new Error(`Failed to retrieve AWS identity document: ${status}`);
+		throw e
 	}
 };
 

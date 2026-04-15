@@ -11,5 +11,5 @@
 		"esModuleInterop": true
 	},
 	"include": [".", "src"],
-	"exclude": ["examples", "node_modules", "lib", "test", "sink", "vitest.config.ts"]
+	"exclude": ["examples", "node_modules", "lib", "sink", "vitest.config.ts"]
 }
