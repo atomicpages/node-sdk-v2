@@ -1,5 +1,4 @@
 import { ApiClient } from "../api/base";
-import { FetchHttpError } from "../api/fetch-errors";
 
 import { Sha256 } from "@aws-crypto/sha256-js";
 import { fromNodeProviderChain } from "@aws-sdk/credential-providers";
