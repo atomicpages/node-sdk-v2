@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { buildUrl, parseBody } from "../src/api/base";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { ApiClient, buildUrl, parseBody } from "../src/api/base";
 
 describe("parseBody", () => {
 	it("returns undefined for 204 status", async () => {
@@ -106,5 +106,139 @@ describe("buildUrl", () => {
 		expect(buildUrl(base, "folders")).toBe(
 			"https://example.com/api/v1/folders"
 		);
+	});
+});
+
+describe("serializeBody", () => {
+	const baseURL = "https://example.com/api/v1/";
+
+	let fetchSpy: ReturnType<typeof vi.fn>;
+	let client: ApiClient;
+
+	beforeEach(() => {
+		fetchSpy = vi.fn(async () => new Response("{}", { status: 200 }));
+		vi.stubGlobal("fetch", fetchSpy);
+		client = new ApiClient({ baseURL });
+	});
+
+	afterEach(() => {
+		vi.unstubAllGlobals();
+	});
+
+	const lastFetchInit = (): RequestInit => {
+		expect(fetchSpy).toHaveBeenCalled();
+		return fetchSpy.mock.calls.at(-1)?.[1] as RequestInit;
+	};
+
+	const getHeader = (init: RequestInit, key: string): string | undefined => {
+		const headers = init.headers as unknown;
+		if (!headers) return undefined;
+		if (headers instanceof Headers) return headers.get(key) ?? undefined;
+		if (Array.isArray(headers)) {
+			const match = headers.find(([k]) => k.toLowerCase() === key.toLowerCase());
+			return match?.[1];
+		}
+		return (headers as Record<string, string>)[key];
+	};
+
+	it("JSON-stringifies an object body with default Content-Type", async () => {
+		await client.post("/x", { a: 1 });
+
+		const init = lastFetchInit();
+		expect(init.body).toBe('{"a":1}');
+		expect(getHeader(init, "Content-Type")).toBe("application/json");
+	});
+
+	it("JSON-stringifies an object body when application/json is passed explicitly", async () => {
+		await client.post(
+			"/x",
+			{ a: 1 },
+			{ headers: { "Content-Type": "application/json" } }
+		);
+
+		const init = lastFetchInit();
+		expect(init.body).toBe('{"a":1}');
+		expect(getHeader(init, "Content-Type")).toBe("application/json");
+	});
+
+	it("returns undefined body and no Content-Type when data is undefined", async () => {
+		await client.post("/x", undefined);
+
+		const init = lastFetchInit();
+		expect(init.body).toBeUndefined();
+		expect(getHeader(init, "Content-Type")).toBeUndefined();
+	});
+
+	it("form-urlencodes a plain object when Content-Type is application/x-www-form-urlencoded", async () => {
+		await client.post(
+			"/x",
+			{ a: 1, b: "x" },
+			{ headers: { "Content-Type": "application/x-www-form-urlencoded" } }
+		);
+
+		const init = lastFetchInit();
+		expect(init.body).toBe("a=1&b=x");
+		expect(getHeader(init, "Content-Type")).toBe(
+			"application/x-www-form-urlencoded"
+		);
+	});
+
+	it("drops null and undefined values when form-urlencoding an object", async () => {
+		await client.post(
+			"/x",
+			{ a: 1, b: undefined, c: null, d: "x" },
+			{ headers: { "Content-Type": "application/x-www-form-urlencoded" } }
+		);
+
+		const init = lastFetchInit();
+		expect(init.body).toBe("a=1&d=x");
+	});
+
+	it("serializes URLSearchParams for form-urlencoded Content-Type", async () => {
+		await client.post(
+			"/x",
+			new URLSearchParams({ a: "1" }),
+			{ headers: { "Content-Type": "application/x-www-form-urlencoded" } }
+		);
+
+		const init = lastFetchInit();
+		expect(init.body).toBe("a=1");
+	});
+
+	it("passes through a pre-encoded string for form-urlencoded Content-Type", async () => {
+		await client.post(
+			"/x",
+			"pre=encoded",
+			{ headers: { "Content-Type": "application/x-www-form-urlencoded" } }
+		);
+
+		const init = lastFetchInit();
+		expect(init.body).toBe("pre=encoded");
+	});
+
+	it("throws TypeError when form-urlencoded data is not an object, string, or URLSearchParams", async () => {
+		expect(() =>
+			client.post("/x", 42, {
+				headers: { "Content-Type": "application/x-www-form-urlencoded" },
+			})
+		).toThrow(TypeError);
+		expect(fetchSpy).not.toHaveBeenCalled();
+	});
+
+	it("passes through a string body for non-JSON, non-form Content-Type", async () => {
+		await client.post("/x", "raw string", {
+			headers: { "Content-Type": "text/plain" },
+		});
+
+		const init = lastFetchInit();
+		expect(init.body).toBe("raw string");
+		expect(getHeader(init, "Content-Type")).toBe("text/plain");
+	});
+
+	it("throws TypeError when non-JSON Content-Type receives a non-string body", async () => {
+		expect(() =>
+			client.post("/x", { a: 1 }, { headers: { "Content-Type": "text/plain" } })
+		).toThrow(/pre-serialized string/);
+		expect(fetchSpy).not.toHaveBeenCalled();
 	});
 });

@@ -20,6 +20,7 @@ export interface RequestConfig {
 
 const DEFAULT_TIMEOUT_MS = 10_000;
 const JSON_CONTENT_TYPE = "application/json";
+const FORM_URLENCODED_CONTENT_TYPE = "application/x-www-form-urlencoded";
 
 /** @internal */
 export const buildUrl = (
@@ -50,6 +51,29 @@ export const parseBody = async (response: Response): Promise<unknown> => {
 	} catch {
 		return text;
 	}
+};
+
+/** @internal */
+const encodeFormUrlencoded = (data: unknown, contentType: string): string => {
+	if (typeof data === "string") {
+		return data;
+	}
+	if (data instanceof URLSearchParams) {
+		return data.toString();
+	}
+	if (typeof data === "object" && data !== null) {
+		const params = new URLSearchParams();
+		for (const [key, value] of Object.entries(
+			data as Record<string, unknown>
+		)) {
+			if (value === undefined || value === null) continue;
+			params.append(key, String(value));
+		}
+		return params.toString();
+	}
+	throw new TypeError(
+		`ApiClient: Content-Type "${contentType}" requires a string, URLSearchParams, or plain object body, but received ${typeof data}.`
+	);
 };
 
 export class ApiClient {
@@ -134,12 +158,23 @@ export class ApiClient {
 
 		headers["Content-Type"] = contentType;
 
-		const body =
-			contentType === JSON_CONTENT_TYPE
-				? JSON.stringify(data)
-				: (data as string);
 
-		return { body, headers };
+		if (contentType === JSON_CONTENT_TYPE) {
+			return { body: JSON.stringify(data), headers };
+		}
+
+		if (contentType === FORM_URLENCODED_CONTENT_TYPE) {
+			return { body: encodeFormUrlencoded(data, contentType), headers };
+		}
+
+		if (typeof data !== "string") {
+			throw new TypeError(
+				`ApiClient: Content-Type "${contentType}" requires a pre-serialized string body, but received ${typeof data}. Serialize the data before passing it.`
+			);
+		}
+
+		return { body: data, headers };
+
 	}
 
 	private async request<T>(
