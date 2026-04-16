@@ -1,10 +1,11 @@
-import axios from "axios";
-import { AWS_IDENTITY_DOCUMENT_URI, AWS_TOKEN_METADATA_URI } from "./constants";
+import { ApiClient } from "../api/base";
 
 import { Sha256 } from "@aws-crypto/sha256-js";
 import { fromNodeProviderChain } from "@aws-sdk/credential-providers";
 import { HttpRequest } from "@smithy/protocol-http";
 import { SignatureV4 } from "@smithy/signature-v4";
+
+import { AWS_BASE_URI,  AWS_IDENTITY_DOCUMENT_PATH,  AWS_TOKEN_METADATA_PATH  } from "./constants";
 
 import { InfisicalSDKError } from "./errors";
 import { Secret } from "../api/types";
@@ -25,25 +26,20 @@ export const getAwsRegion = async () => {
 		return region;
 	}
 
+	const client = new ApiClient({ baseURL: AWS_BASE_URI, timeout: 5_000 });
+
+	let token: string;
 	try {
-		const tokenRes = await axios.put(AWS_TOKEN_METADATA_URI, undefined, {
-			headers: {
-				"X-aws-ec2-metadata-token-ttl-seconds": "21600"
-			},
-			timeout: 5_000 // 5 seconds
+		token = await client.put<string>(AWS_TOKEN_METADATA_PATH, undefined, {
+			headers: { "X-aws-ec2-metadata-token-ttl-seconds": "21600" },
 		});
 
-		const identityResponse = await axios.get<{ region: string }>(AWS_IDENTITY_DOCUMENT_URI, {
-			headers: {
-				"X-aws-ec2-metadata-token": tokenRes.data,
-				Accept: "application/json"
-			},
-			timeout: 5_000
+		const identityData = await client.get<{ region: string }>(AWS_IDENTITY_DOCUMENT_PATH, {
+			headers: { "X-aws-ec2-metadata-token": token, Accept: "application/json" },
 		});
-
-		return identityResponse.data.region;
+		return identityData.region;
 	} catch (e) {
-		throw e;
+		throw e
 	}
 };
 

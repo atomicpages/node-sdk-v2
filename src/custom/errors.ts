@@ -1,4 +1,4 @@
-import axios from "axios";
+import { isFetchHttpError } from "../api/fetch-errors";
 
 export class InfisicalSDKError extends Error {
   constructor(message: string) {
@@ -24,26 +24,23 @@ export class InfisicalSDKRequestError extends Error {
 }
 
 export const newInfisicalError = (error: any) => {
-  if (axios.isAxiosError(error)) {
-    const data = error?.response?.data;
+  if (isFetchHttpError(error)) {
+    const data = error.response.data as Record<string, unknown> | null | undefined;
 
-    if (data?.message) {
-      let message = data.message;
-      if (error.response?.status === 422) {
+    if (typeof data?.message === "string") {
+      let message: string = data.message;
+      if (error.response.status === 422) {
         message = JSON.stringify(data);
       }
 
       return new InfisicalSDKRequestError(message, {
-        url: error.response?.config.url || "",
-        method: error.response?.config.method || "",
-        statusCode: error.response?.status || 0,
+        url: error.response.config.url,
+        method: error.response.config.method,
+        statusCode: error.response.status,
       });
     } else if (error.message) {
       return new InfisicalSDKError(error.message);
-    } else if (error.code) {
-      // If theres no message but a code is present, it's likely to be an aggregation error. This is not specific to Axios, but it falls under the AxiosError type
-      return new InfisicalSDKError(error.code);
-    } else {
+    }  else {
       return new InfisicalSDKError("Request failed with unknown error");
     }
   }

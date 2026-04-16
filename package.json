@@ -7,7 +7,8 @@
     "lib"
   ],
   "scripts": {
-    "build": "tsup src/index.ts --out-dir lib --dts --format cjs,esm --tsconfig tsconfig.json --no-splitting"
+    "build": "tsup src/index.ts --out-dir lib --dts --format cjs,esm --tsconfig tsconfig.json --no-splitting",
+    "test": "vitest run"
   },
   "keywords": [
     "infisical",
@@ -25,14 +26,14 @@
   "devDependencies": {
     "@types/node": "^22.5.1",
     "tsc": "^2.0.4",
-    "tsup": "^8.2.4"
+    "tsup": "^8.2.4",
+    "vitest": "^2.1.9"
   },
   "dependencies": {
     "@aws-crypto/sha256-js": "^5.2.0",
     "@aws-sdk/credential-providers": "3.993.0",
     "@smithy/protocol-http": "^5.3.8",
     "@smithy/signature-v4": "^5.3.8",
-    "axios": "^1.11.0",
     "typescript": "^5.5.4",
     "zod": "^3.23.8"
   },
@@ -41,7 +42,7 @@
   },
   "directories": {
     "lib": "lib",
-    "test": "test"
+    "test": "sink"
   },
   "types": "./lib/index.d.ts",
   "bugs": {
